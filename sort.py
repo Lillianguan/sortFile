@@ -1,9 +1,11 @@
-import os, glob,re
+import glob
+import os
+import re
 import shutil
 import tkinter as tk
-import tkinter.ttk as ttk
 import tkinter.messagebox as me
 import tkinter.scrolledtext as sc
+import tkinter.ttk as ttk
 
 
 class sort_app(tk.Tk):
@@ -179,7 +181,7 @@ class sort_app(tk.Tk):
                       '|(?<=ADIFF÷).*?(?=÷|\\.Pin)|(?<=DIFF÷).*?(?=÷|\\.Pin)' \
                       '|(?<=ADIFF_SingleColor÷).*?(?=÷|\\.Pin)'
 
-        # open the result file and ready to writé
+        # open the result file and ready to write
         result_path = os.path.join(des_path,'result.txt')
         result = open(result_path, 'w')
 
@@ -263,6 +265,6 @@ def callback(path):
 # define the cmd start function
 if __name__ == "__main__":
     app = sort_app(None)
-    app.title ('File Sort')
+    app.title ('Image File Sort')
     app.mainloop()
 
