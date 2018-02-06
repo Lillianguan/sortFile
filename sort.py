@@ -14,11 +14,13 @@ class sort_app(tk.Tk):
 
     def initialize(self):
 
+        # set the fest size of the window
         self.minsize (width=450, height=500)
         self.maxsize (width=450, height=500)
 
         self.grid_columnconfigure (2, weight=1)
 
+        # first frame for introduction
         textFrame = tk.LabelFrame(self, text = "Here is short introduction of it", height= 200, width = 450)
         textFrame.grid(row = 0, column = 0, columnspan = 3, sticky='NSEW',  padx=5)
 
@@ -46,7 +48,7 @@ class sort_app(tk.Tk):
                            anchor="center")
         setup3.grid (column=0, row=6, columnspan=2)
 
-
+        # second frame for the sort choice
         choiceFrame = tk.LabelFrame (self,  text ="Sort Choice")
         choiceFrame.grid (row=6, columnspan=3, sticky='NSEW',  padx=5)
 
@@ -56,18 +58,18 @@ class sort_app(tk.Tk):
         choiceComb.current (0)
         choiceComb.grid(row = 0, column = 0, rowspan = 2, columnspan =2,  sticky='NW',padx=5, pady = 5)
 
+        # checkbox for the new rules
         self.newDefination_var = tk.IntVar ()
         newCheck = tk.Checkbutton (choiceFrame, text="New Rules",
                                     variable=self.newDefination_var, command=self.OnCheckClick). \
             grid (column=0, row=2, sticky='NW', rowspan=2, pady=3)
 
-
+        # textfield for the new rules
         self.textfield = sc.ScrolledText (choiceFrame, height =2, wrap=tk.WORD, state=tk.DISABLED)
         self.textfield.grid(column=0, row=4, sticky='WENS', columnspan=3, padx=5, pady=5)
         choiceFrame.grid_columnconfigure (1, weight=1)
 
-
-
+        # third frame for the input configuration
         configFrame = tk.LabelFrame (self, text=" Input Configure ")
         configFrame.grid (row=14, columnspan=3, sticky='NSEW',  padx=5, pady = 5)
 
@@ -130,7 +132,7 @@ class sort_app(tk.Tk):
 
 
     def OnButtonClick(self):
-
+        # get source path and destination path
         base =  self.BEntry_var.get()
         src = self.SEntry_var.get()
         des = self.DEntry_var.get()
@@ -138,11 +140,11 @@ class sort_app(tk.Tk):
         source_path = os.path.join(base , src)
         des_path = os.path.join(base, des)
 
-
+        # check the path
         if not os.path.isdir(source_path):
             me.showinfo ("Warning", "Please give the right source path!")
             return
-
+        # choose the sort way you want
         if os.path.isdir(source_path) and not os.path.isdir(des_path):
             if callback(src):
                 self.DEntry_var.set(source_path + '_Sort')
@@ -151,19 +153,22 @@ class sort_app(tk.Tk):
             else:
                 return
 
+        # choose the sort way you want
         if os.path.isdir(base) and des =='':
             if callback(source_path):
                 self.DEntry_var.set (source_path + '_Sort')
                 des_path = source_path + '_Sort'
             else:
                 return
-
+        # check the destination path
         if not os.path.exists (des_path):
             os.makedirs (des_path)
 
+        # get all the image file
         image_list =[]
         recursive_index (source_path, image_list)
 
+        # get the regex pattern
         if self.newDefination_var.get() ==1 and self.textfield.get ('1.0', tk.END)!='':
             Pattern = self.textfield.get('1.0', tk.END)
         else:
@@ -174,17 +179,18 @@ class sort_app(tk.Tk):
                       '|(?<=ADIFF÷).*?(?=÷|\\.Pin)|(?<=DIFF÷).*?(?=÷|\\.Pin)' \
                       '|(?<=ADIFF_SingleColor÷).*?(?=÷|\\.Pin)'
 
+        # open the result file and ready to writé
         result_path = os.path.join(des_path,'result.txt')
         result = open(result_path, 'w')
 
+        # start sorting the images
         for im in image_list:
+            # get the basename and last folder name for the later saving
             base_name = os.path.basename(im)
-            print(base_name)
-
             last_folder = os.path.basename(os.path.dirname(im))
-            print(last_folder)
 
             try:
+                # get the Type, which may have the Comp.
                 b_type = re.search (Pattern, base_name)
                 print (b_type.group ())
             except:
@@ -196,6 +202,7 @@ class sort_app(tk.Tk):
             else:
                 save_path = os.path.join(os.path.join(des_path,last_folder ),b_type.group())
 
+            # if the use the new rules to sort the image files
             if self.newDefination_var.get () == 1 and self.textfield.get ('1.0', tk.END) != '':
                 try:
                     if not os.path.exists (save_path):
@@ -204,6 +211,7 @@ class sort_app(tk.Tk):
                 except:
                     result.write (im + '\n')
                     continue
+            # use the default way to sort image files
             else:
                 if re.match ('Comp.', b_type.group ()):
                     continue
@@ -216,7 +224,7 @@ class sort_app(tk.Tk):
                         result.write (im + '\n')
                         continue
 
-
+        # close the result file and check if it is empty
         result.close()
         if os.stat (result_path).st_size == 0:
             os.remove(result_path)
@@ -225,9 +233,9 @@ class sort_app(tk.Tk):
             me.showinfo ("Warning", "Finished Sort, but there are some images might not"
                                     " sorted successfully, please check the result file!")
 
-
+# recursively parse the image files under a directionary
 def recursive_index(dir, image_list):
-
+    # all possible image extensions
     image_extensions = ['bmp', 'png', 'giff', 'tiff', 'tif', 'jpg', 'jpeg']
 
     for ext in image_extensions:
@@ -242,7 +250,7 @@ def recursive_index(dir, image_list):
         for f in folder_list:
             recursive_index (f, image_list)
 
-
+# callback function for the questioning
 def callback(path):
     if me.askyesno ('Verify', 'There have no available destination path, you want to save as '
                                   + path + '_Sort?'):
@@ -252,9 +260,7 @@ def callback(path):
         return False
 
 
-
-
-
+# define the cmd start function
 if __name__ == "__main__":
     app = sort_app(None)
     app.title ('File Sort')
