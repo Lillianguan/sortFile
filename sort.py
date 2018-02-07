@@ -106,7 +106,7 @@ class sort_app(tk.Tk):
         self.entry_D.bind ("<Return>", self.OnPressEnter)
         configFrame.grid_columnconfigure (1, weight=1)
 
-        button = tk.Button (self, text=u"Start !", bg = 'light blue', height = 2, width = 10,
+        button = tk.Button (self, text=u"Start", bg='light blue', height=2, width=10,
                             command=self.OnButtonClick)
         button.grid (column=1, row=22, rowspan =2, columnspan = 2)
 
@@ -165,6 +165,8 @@ class sort_app(tk.Tk):
         # check the destination path
         if not os.path.exists (des_path):
             os.makedirs (des_path)
+
+        me.showinfo ("Sorting", "Start Sorting...")
 
         # get all the image file
         image_list =[]
@@ -239,17 +241,20 @@ class sort_app(tk.Tk):
 def recursive_index(dir, image_list):
     # all possible image extensions
     image_extensions = ['bmp', 'png', 'giff', 'tiff', 'tif', 'jpg', 'jpeg']
+    image = []
 
     for ext in image_extensions:
         search_str = os.path.join (dir, '*.%s' % ext)
         image_list.extend (glob.glob (search_str))
+        image.extend (glob.glob (search_str))
 
-    if len (image_list) == 0:
+    if len (image) == 0:
         folder_list = [os.path.join (dir, f)
                        for f in os.listdir (dir)
                        if os.path.isdir (os.path.join (dir, f))]
 
         for f in folder_list:
+            print (f)
             recursive_index (f, image_list)
 
 # callback function for the questioning
