@@ -4,7 +4,6 @@ import re
 import shutil
 import tkinter as tk
 import tkinter.messagebox as me
-import tkinter.scrolledtext as sc
 import tkinter.ttk as ttk
 
 
@@ -17,8 +16,8 @@ class sort_app(tk.Tk):
     def initialize(self):
 
         # set the fest size of the window
-        self.minsize (width=450, height=500)
-        self.maxsize (width=450, height=500)
+        self.minsize (width=450, height=450)
+        self.maxsize (width=450, height=450)
 
         self.grid_columnconfigure (2, weight=1)
 
@@ -31,8 +30,7 @@ class sort_app(tk.Tk):
                                                 "the filename like:", anchor = "center")
         attention1.grid (column=0, row=1, columnspan=2)
 
-        attention2 = tk.Label (textFrame, text="*** AUD/?÷C123÷ *** or ***AUD/?÷Comp.C123.Pin***, "
-                                               "search light type.", anchor="center")
+        attention2 = tk.Label (textFrame, text="*** ÷***÷...÷***", anchor="center")
         attention2.grid (column=0, row=2, columnspan=2)
 
         setupLabel = tk.Label (textFrame, text="Setup: ", fg='red',
@@ -46,30 +44,32 @@ class sort_app(tk.Tk):
                            anchor="center")
         setup2.grid (column=0, row=5, columnspan=2)
 
-        setup3 = tk.Label (textFrame, text="'New Rules' could defined your own rules for sorting.",
+        setup2 = tk.Label (textFrame, text="'Choose sort type', the different sort choice could be used.",
                            anchor="center")
-        setup3.grid (column=0, row=6, columnspan=2)
+        setup2.grid (column=0, row=6, columnspan=2)
 
         # second frame for the sort choice
-        choiceFrame = tk.LabelFrame (self,  text ="Sort Choice")
+        choiceFrame = tk.LabelFrame (self, text="Sort Choice", height=100, width=450)
         choiceFrame.grid (row=6, columnspan=3, sticky='NSEW',  padx=5)
+
+        sortDirLabel = tk.Label (choiceFrame, text="Choose architecture:")
+        sortDirLabel.grid (column=0, row=0, sticky='NW')
+
+        sortTypeLabel = tk.Label (choiceFrame, text="Choose sort methode:")
+        sortTypeLabel.grid (column=2, row=0, columnspan=2, sticky='NE')
 
         self.choice_value = tk.StringVar ()
         choiceComb = ttk.Combobox (choiceFrame, textvariable=self.choice_value)
         choiceComb['values'] = ('sort directly', 'sort into subDIR')
         choiceComb.current (0)
-        choiceComb.grid(row = 0, column = 0, rowspan = 2, columnspan =2,  sticky='NW',padx=5, pady = 5)
+        choiceComb.grid (row=2, column=0, rowspan=2, sticky='NW', padx=5, pady=5)
 
-        # checkbox for the new rules
-        self.newDefination_var = tk.IntVar ()
-        newCheck = tk.Checkbutton (choiceFrame, text="New Rules",
-                                    variable=self.newDefination_var, command=self.OnCheckClick). \
-            grid (column=0, row=2, sticky='NW', rowspan=2, pady=3)
-
-        # textfield for the new rules
-        self.textfield = sc.ScrolledText (choiceFrame, height =2, wrap=tk.WORD, state=tk.DISABLED)
-        self.textfield.grid(column=0, row=4, sticky='WENS', columnspan=3, padx=5, pady=5)
-        choiceFrame.grid_columnconfigure (1, weight=1)
+        self.choice_sort = tk.StringVar ()
+        choiceComb_S = ttk.Combobox (choiceFrame, textvariable=self.choice_sort, width=30)
+        choiceComb_S['values'] = ('Custom', 'Board', 'Barcode', 'Element group',
+                                  'Lighting', 'Eletrc. Component without Pin', 'Eletrc. Component with Pin', 'Pin')
+        choiceComb_S.current (5)
+        choiceComb_S.grid (row=2, column=3, rowspan=2, columnspan=2, sticky='NE', padx=5, pady=5)
 
         # third frame for the input configuration
         configFrame = tk.LabelFrame (self, text=" Input Configure ")
@@ -172,17 +172,6 @@ class sort_app(tk.Tk):
         image_list =[]
         recursive_index (source_path, image_list)
 
-        # get the regex pattern
-        if self.newDefination_var.get() ==1 and self.textfield.get ('1.0', tk.END)!='':
-            Pattern = self.textfield.get('1.0', tk.END)
-        else:
-            Pattern = '(?<=AUD÷).*?(?=÷|\\.Pin)|(?<=AUD_20÷).*?(?=÷|\\.Pin)' \
-                      '|(?<=LEVEL_3÷).*?(?=÷|\\.Pin)|(?<=AUFL÷).*?(?=÷|\\.Pin)' \
-                      '|(?<=AUDAngl÷).*?(?=÷|\\.Pin)|(?<=UWDIFF_Angl÷).*?(?=÷|\\.Pin)' \
-                      '|(?<=WDIFF÷).*?(?=÷|\\.Pin)|(?<=ANGL_BDIFF÷).*?(?=÷|\\.Pin)' \
-                      '|(?<=ADIFF÷).*?(?=÷|\\.Pin)|(?<=DIFF÷).*?(?=÷|\\.Pin)' \
-                      '|(?<=ADIFF_SingleColor÷).*?(?=÷|\\.Pin)'
-
         # open the result file and ready to write
         result_path = os.path.join(des_path,'result.txt')
         result = open(result_path, 'w')
@@ -192,41 +181,26 @@ class sort_app(tk.Tk):
             # get the basename and last folder name for the later saving
             base_name = os.path.basename(im)
             last_folder = os.path.basename(os.path.dirname(im))
+            matches = self.get_pattern (base_name)
 
-            try:
-                # get the Type, which may have the Comp.
-                b_type = re.search (Pattern, base_name)
-                print (b_type.group ())
-            except:
-                me.showinfo ("Warning", "Sorry, your Search Rules might not right!")
-                return
+            # continue the loop
+            if matches == '÷':
+                continue
 
             if self.choice_value.get () == 'sort directly':
-                save_path = (os.path.join(des_path, b_type.group()))
+                save_path = (os.path.join (des_path, matches))
             else:
-                save_path = os.path.join(os.path.join(des_path,last_folder ),b_type.group())
+                save_path = os.path.join (os.path.join (des_path, last_folder), matches)
 
             # if the use the new rules to sort the image files
-            if self.newDefination_var.get () == 1 and self.textfield.get ('1.0', tk.END) != '':
-                try:
-                    if not os.path.exists (save_path):
-                        os.makedirs (save_path)
-                    shutil.copyfile (im, os.path.join (save_path, base_name))
-                except:
-                    result.write (im + '\n')
-                    continue
-            # use the default way to sort image files
-            else:
-                if re.match ('Comp.', b_type.group ()):
-                    continue
-                else:
-                    try:
-                        if not os.path.exists (save_path):
-                            os.makedirs (save_path)
-                        shutil.copyfile (im, os.path.join (save_path, base_name))
-                    except:
-                        result.write (im + '\n')
-                        continue
+            try:
+                if not os.path.exists (save_path):
+                    os.makedirs (save_path)
+                shutil.copyfile (im, os.path.join (save_path, base_name))
+            except:
+                result.write (im + '\n')
+                continue
+
 
         # close the result file and check if it is empty
         result.close()
@@ -236,6 +210,63 @@ class sort_app(tk.Tk):
         else:
             me.showinfo ("Warning", "Finished Sort, but there are some images might not"
                                     " sorted successfully, please check the result file!")
+
+    # get the the sort pattern
+    def get_pattern(self, base_name):
+
+        if self.choice_sort.get () == 'Custom':
+            pattern = '^(?:[^÷]*\÷){0}([^÷]*)'
+        elif self.choice_sort.get () == 'Board':
+            pattern = '^(?:[^÷]*\÷){1}([^÷]*)'
+        elif self.choice_sort.get () == 'Barcode':
+            pattern = '^(?:[^÷]*\÷){2}([^÷]*)'
+        elif self.choice_sort.get () == 'Element group':
+            pattern = '^(?:[^÷]*\÷){5}([^÷]*)'
+        elif self.choice_sort.get () == 'Lighting':
+            if base_name.count ('÷') == 12:
+                pattern = '^(?:[^÷]*\÷){8}([^÷]*)'
+            elif base_name.count ('÷') == 13:
+                pattern = '^(?:[^÷]*\÷){9}([^÷]*)'
+        elif self.choice_sort.get () == 'Eletrc. Component without Pin':
+            if base_name.count ('÷') == 12:
+                pattern = '^(?:[^÷]*\÷){9}([^÷]*)'
+            elif base_name.count ('÷') == 13:
+                pattern = '÷'
+        elif self.choice_sort.get () == 'Eletrc. Component with Pin':
+            if base_name.count ('÷') == 12:
+                pattern = '^(?:[^÷]*\÷){9}([^÷]*)'
+            elif base_name.count ('÷') == 13:
+                pattern = '^(?:[^÷]*\÷){10}([^÷]*)'
+        elif self.choice_sort.get () == 'Pin':
+            if base_name.count ('÷') == 12:
+                pattern = '÷'
+            elif base_name.count ('÷') == 13:
+                pattern = '^(?:[^÷]*\÷){10}([^÷]*)'
+        else:
+            raise Exception ('There is no such sort way!')
+
+        try:
+            result = re.search (pattern, base_name)
+        except:
+            print ('This file might something wrong!')
+            return
+
+        if result.groups ():
+            if self.choice_sort.get () == 'Eletrc. Component with Pin':
+                result_ = re.search ('(?<=Comp.).*?(?=.Pin)', result.group (1))
+                if result_:
+                    print (result_.group (0))
+                    return result_.group (0)
+
+                else:
+                    return result.group (1)
+            else:
+                print ('Result:' + str (result.group (1)))
+                return result.group (1)
+        else:
+            return result.group (0)
+
+
 
 # recursively parse the image files under a directionary
 def recursive_index(dir, image_list):
